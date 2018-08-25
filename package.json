@@ -10,8 +10,14 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "axios": "^0.18.0",
+    "bluebird": "^3.5.1",
     "cors": "^2.8.4",
     "express": "^4.16.3",
-    "http-proxy-middleware": "^0.18.0"
+    "fs": "0.0.1-security",
+    "http-proxy-middleware": "^0.18.0",
+    "node-fetch": "^2.2.0",
+    "react": "^16.4.2",
+    "react-dom": "^16.4.2"
   }
 }

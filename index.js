@@ -1,39 +1,43 @@
-const express = require('express');
-const bodyParser = require('body-parser');
+const express = require('express')
 const path = require('path');
-const cors = require('cors');
-const proxy = require('http-proxy-middleware');
-
 const app = express();
+const axios = require('axios');
 
-app.use(cors());
-app.use(bodyParser.json());
+// app.use('/*', express.static('./'));
 
-const localRoutes = {
-  3001: 'http://localhost:3001',
-  3002: 'http://localhost:3002',
-  3003: 'http://localhost:3003',
-  3004: 'http://localhost:3004',
-}
+const clientBundles = './public/services';
+const serverBundles = './templates/services';
+const serviceConfig = require('./service-config.json');
+const services = require('./loader.js')(clientBundles, serverBundles, serviceConfig);
 
-const ec2Routes = {
-  3001: 'http://ec2-34-238-117-212.compute-1.amazonaws.com/',
-  3002: 'http://ec2-54-153-53-170.us-west-1.compute.amazonaws.com/',
-  3003: 'http://ec2-52-90-134-215.compute-1.amazonaws.com',
-  3004: 'http://ec2-34-224-31-187.compute-1.amazonaws.com/',
-}
+const React = require('react');
+const ReactDom = require('react-dom/server');
+const Layout = require('./templates/layout');
+const App = require('./templates/app');
+const Scripts = require('./templates/scripts');
 
-let route = ec2Routes;
+const renderComponents = (components, props = {}) => {
+  return Object.keys(components).map(item => {
+    let component = React.createElement(components[item], props);
+    return ReactDom.renderToString(component);
+  });
+};
 
-app.use('/related/**', proxy({target: route[3001], changeOrigin: true}));
-app.use('/images/**', proxy({target: route[3002], changeOrigin: true}));
-app.use('/products/**', proxy({target: route[3003], changeOrigin: true}));
-app.use('/reviews/**', proxy({target: route[3004], changeOrigin: true}));
-
-app.get('/', (req, res) => {
-  res.redirect('/1');
+app.get('/:id', (req, res) => {
+  console.log('get request');
+  let id = req.params.id;
+  axios.get(`http://localhost:3002/images/${id}/product_info`)
+  .then( result => {
+    let components = renderComponents(services, {productData: result.data});
+    console.log(components);
+    res.end(Layout(
+      'hAmazon',
+      App(...components),
+      Scripts(Object.keys(services), {productData: result.data})
+    ));
+  })
+  .catch( err => console.log(err));
 });
 
-app.use('/*', express.static('./'));
 
 app.listen(3000, () => console.log('Listening on port 3000'));

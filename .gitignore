@@ -1,3 +1,6 @@
 node_modules/
+PhotoGalleryModule.js
+PhotoGalleryModuleserver.js
+service-config.json
 
 *.pem
